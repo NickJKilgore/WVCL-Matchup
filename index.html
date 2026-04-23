@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WVCL Matchup — No Hit Sherlock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14100e;
+    --surface: #1e1815;
+    --surface-2: #2a221d;
+    --border: #3a2e26;
+    --border-lit: #5a4a3e;
+    --text: #ece2cf;
+    --text-dim: #9a8a78;
+    --text-faint: #5a4e42;
+    --red: #d13b2a;
+    --red-hot: #e8583f;
+    --cream: #f0e4cc;
+    --green: #7fa856;
+    --yellow: #d4a93a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: 'Archivo', system-ui, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 20px 48px;
+    background-image:
+      radial-gradient(ellipse at 15% 0%, rgba(209,59,42,0.08), transparent 50%),
+      radial-gradient(ellipse at 85% 100%, rgba(127,168,86,0.05), transparent 50%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  button, select, input { -webkit-tap-highlight-color: transparent; }
+  .container { max-width: 1180px; margin: 0 auto; }
+
+  /* ============ HEADER ============ */
+  header {
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(34px, 5.5vw, 54px);
+    letter-spacing: 3px;
+    color: var(--cream);
+    line-height: 0.95;
+  }
+  h1 .accent { color: var(--red); }
+  .sub {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .sub .team { color: var(--cream); }
+  .bullseye {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, var(--red) 22%, var(--cream) 22% 38%, #1f1a16 38% 56%, var(--cream) 56% 72%, #1f1a16 72%);
+    border: 2px solid var(--border-lit);
+    flex-shrink: 0;
+    box-shadow: 0 0 24px rgba(209,59,42,0.2);
+  }
+
+  /* ============ STATUS BAR ============ */
+  .status-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .status-bar button {
+    background: var(--red);
+    color: var(--cream);
+    border: none;
+    padding: 7px 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1.5px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.15s;
+  }
+  .status-bar button:hover { background: var(--red-hot); }
+  .status-bar button:disabled { background: var(--border); cursor: not-allowed; color: var(--text-faint); }
+  .status-info { color: var(--text-dim); flex: 1; min-width: 200px; }
+  .status-info.loading { color: var(--yellow); }
+  .status-info.error { color: var(--red-hot); }
+  .status-info.ok { color: var(--green); }
+  .status-info .dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; margin-right: 6px; vertical-align: middle;
+  }
+
+  /* ============ LINEUP ============ */
+  .lineup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 760px) { .lineup-grid { grid-template-columns: 1fr; } }
+
+  .lineup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px 20px 16px;
+    position: relative;
+  }
+  .lineup-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--red);
+  }
+  .lineup-card.home::before { background: var(--green); }
+
+  .label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .team-select-wrap { margin-bottom: 14px; }
+  select.team-select {
+    width: 100%;
+    padding: 9px 12px;
+    background: var(--surface-2);
+    color: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+  }
+  select.team-select:focus { outline: none; border-color: var(--red); }
+
+  .slot {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    align-items: start;
+    margin-bottom: 8px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+  .slot:first-of-type { border-top: 1px solid var(--border-lit); }
+  .slot-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    color: var(--red);
+    text-align: center;
+    line-height: 1;
+    padding-top: 4px;
+  }
+  .lineup-card.home .slot-num { color: var(--green); }
+
+  .slot-body { display: flex; flex-direction: column; gap: 6px; }
+  .slot-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .slot-row select, .slot-row input {
+    width: 100%;
+    padding: 8px 9px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 15px;
+  }
+  .slot-row select:focus, .slot-row input:focus {
+    outline: none; border-color: var(--red);
+  }
+  .slot-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+  .slot-stats .num { color: var(--cream); font-weight: 600; }
+  .slot-stats .sep { color: var(--text-faint); margin: 0 4px; }
+
+  .sub-inputs {
+    display: grid;
+    grid-template-columns: 1fr 92px 92px;
+    gap: 6px;
+  }
+  .sub-inputs input { font-size: 13px; padding: 6px 8px; }
+  .sub-inputs input[type="number"] {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+  }
+
+  /* ============ BOARD ============ */
+  .board-section { margin-bottom: 26px; }
+  .board-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2.5px;
+    color: var(--cream);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .board-title .dot { color: var(--red); margin: 0 4px; }
+  .board-title .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  .game-row {
+    display: grid;
+    grid-template-columns: 36px 1fr 36px 1fr;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-left: 3px solid var(--border);
+    margin-bottom: 3px;
+    gap: 14px;
+    transition: border-color 0.15s;
+  }
+  .game-row:hover { border-left-color: var(--red); }
+  .game-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--text-faint);
+    text-align: center;
+    line-height: 1;
+  }
+  .side {
+    display: grid;
+    grid-template-columns: 56px 1fr 56px;
+    align-items: center;
+    gap: 10px;
+  }
+  .players {
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.25;
+  }
+  .players .p1, .players .p2 { display: inline-block; }
+  .players .amp {
+    color: var(--text-faint);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 6px;
+    font-size: 11px;
+  }
+  .handicap {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 7px 6px;
+    background: var(--surface-2);
+    color: var(--cream);
+    border-radius: 2px;
+    text-align: center;
+    min-width: 54px;
+    letter-spacing: 0.02em;
+  }
+  .handicap.full { color: var(--green); background: rgba(127,168,86,0.08); }
+  .handicap.floor { color: var(--yellow); background: rgba(212,169,58,0.07); }
+  .handicap.marks {
+    color: var(--red-hot);
+    background: rgba(209,59,42,0.09);
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .handicap.blank { color: var(--text-faint); background: transparent; opacity: 0.3; }
+  .handicap.missing { color: var(--text-faint); background: transparent; }
+  .vs {
+    font-family: 'Bebas Neue', sans-serif;
+    color: var(--red);
+    font-size: 14px;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .cricket-avgs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-faint);
+    text-align: center;
+    margin-top: 2px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .cricket-avgs .v { color: var(--text-dim); }
+
+  /* Collapsible section toggle (button in board-title) */
+  .section-toggle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .section-toggle:hover { color: var(--cream); border-color: var(--border-lit); }
+  .lineup-grid.collapsed { display: none; }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 760px) {
+    body { padding: 14px 12px 32px; }
+
+    /* Header: smaller bullseye, tighter spacing */
+    header { padding-bottom: 14px; margin-bottom: 14px; }
+    h1 { letter-spacing: 2px; }
+    .bullseye { width: 40px; height: 40px; }
+    .sub { font-size: 10px; letter-spacing: 0.2em; }
+
+    /* Status bar */
+    .status-bar { padding: 10px 12px; margin-bottom: 14px; }
+    .status-bar button { padding: 10px 14px; font-size: 15px; }
+    .status-info { font-size: 11px; }
+
+    /* All form elements: 16px font (prevents iOS auto-zoom) + bigger touch targets */
+    select.team-select {
+      font-size: 20px;
+      padding: 12px 12px;
+      min-height: 48px;
+    }
+    .slot-row select, .slot-row input,
+    .sub-inputs input {
+      font-size: 16px;
+      padding: 11px 10px;
+      min-height: 44px;
+    }
+    .sub-inputs {
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+    .sub-inputs > input[data-sub="name"] {
+      grid-column: 1 / -1;
+    }
+    .sub-inputs input { padding: 10px 8px; }
+
+    /* Lineup cards: tighter padding, slot number smaller */
+    .lineup-grid { gap: 14px; margin-bottom: 20px; }
+    .lineup-card { padding: 14px 14px 12px; }
+    .team-select-wrap { margin-bottom: 10px; }
+
+    .slot {
+      grid-template-columns: 24px 1fr;
+      gap: 8px;
+      padding: 7px 0;
+    }
+    .slot-num { font-size: 22px; padding-top: 8px; }
+    .slot-row { grid-template-columns: 1fr; gap: 4px; }
+    .slot-stats {
+      font-size: 11px;
+      text-align: left;
+      padding-left: 2px;
+    }
+
+    /* Board titles */
+    .board-title { font-size: 20px; letter-spacing: 2px; padding-bottom: 8px; }
+    .board-title .meta { font-size: 9px; }
+    .board-section { margin-bottom: 18px; }
+
+    /* Game rows: stack vertically */
+    .game-row {
+      display: block;
+      padding: 12px 14px 10px 44px;
+      position: relative;
+      margin-bottom: 4px;
+    }
+    .game-num {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 28px;
+      font-size: 22px;
+      line-height: 1;
+    }
+    .game-row .side {
+      grid-template-columns: 54px 1fr 54px;
+      gap: 8px;
+    }
+    .game-row .side > div:first-child > .players,
+    .game-row .side > .players { font-size: 13px; }
+    .players { font-size: 13px; }
+    .players .amp { font-size: 10px; margin: 0 4px; }
+
+    .handicap {
+      font-size: 14px;
+      padding: 6px 4px;
+      min-width: 48px;
+    }
+    .handicap.marks { font-size: 15px; }
+
+    .vs {
+      font-size: 10px;
+      padding: 3px 0;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 2px 0;
+    }
+    .vs::before, .vs::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      opacity: 0.6;
+    }
+
+    .cricket-avgs { font-size: 8px; }
+
+    footer { margin-top: 22px; font-size: 9px; }
+    footer .key { gap: 10px 14px; margin-bottom: 4px; }
+  }
+
+  footer {
+    margin-top: 36px;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    text-align: center;
+    line-height: 1.7;
+  }
+  footer .key {
+    display: inline-flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 6px;
+  }
+  footer .k { display: inline-flex; align-items: center; gap: 5px; }
+  footer .k::before {
+    content: ''; width: 9px; height: 9px; border-radius: 1px;
+  }
+  footer .k.full::before { background: var(--green); }
+  footer .k.scaled::before { background: var(--cream); }
+  footer .k.floor::before { background: var(--yellow); }
+  footer .k.marks::before { background: var(--red-hot); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>MATCHUP <span class="accent">BOARD</span></h1>
+      <div class="sub">WVCL · <span class="team" id="hdr-myteam">No Hit Sherlock</span> · <span id="hdr-league">WVSM26</span></div>
+    </div>
+    <div class="bullseye" aria-hidden="true"></div>
+  </header>
+
+  <div class="status-bar">
+    <button id="refresh-btn">Refresh Stats</button>
+    <span class="status-info" id="status"><span class="dot"></span>Ready</span>
+  </div>
+
+  <div class="board-section">
+    <div class="board-title">
+      <span>Lineup <span class="dot">●</span></span>
+      <button class="section-toggle" id="collapse-lineup" aria-expanded="true">Hide</button>
+    </div>
+    <div class="lineup-grid" id="lineup-grid">
+      <div class="lineup-card away">
+        <div class="team-select-wrap">
+          <div class="label">Away Team</div>
+          <select id="away-team" class="team-select" aria-label="Away team"></select>
+        </div>
+        <div id="away-slots"></div>
+      </div>
+      <div class="lineup-card home">
+        <div class="team-select-wrap">
+          <div class="label">Home Team</div>
+          <select id="home-team" class="team-select" aria-label="Home team"></select>
+        </div>
+        <div id="home-slots"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="board-section">
+    <div class="board-title">
+      <span>501 Doubles <span class="dot">●</span></span>
+      <span class="meta">Games 1–6 · Individual handicapped starts</span>
+    </div>
+    <div id="x01-games"></div>
+  </div>
+
+  <div class="board-section">
+    <div class="board-title">
+      <span>Cricket Doubles <span class="dot">●</span></span>
+      <span class="meta">Games 7–12 · Marks awarded to weaker pair</span>
+    </div>
+    <div id="cricket-games"></div>
+  </div>
+
+  <footer>
+    <div class="key">
+      <span class="k full">Starts at 501 (best player)</span>
+      <span class="k scaled">Scaled start</span>
+      <span class="k floor">Floored at 351</span>
+      <span class="k marks">Cricket marks awarded</span>
+    </div>
+    501 = min(501, max(round(501 · avg / best), 351)) per player · Cricket marks = variance × skill-tier lookup
+  </footer>
+
+</div>
+
+<script>
+// ============================================================
+//  WVCL MATCHUP BOARD
+// ============================================================
+
+const STATS_URL = 'https://leagueleader.net/sharedreport.php?operatorid=360&code=a53a1292-9000-4f51-b7fe-db3463609f05';
+const MY_TEAM = 'NO HIT SHERLOCK';
+const DEFAULT_OPPONENT = 'Huckleberries';
+const SUB_DEFAULT_PPD = 20.0;
+const SUB_DEFAULT_MPR = 2.0;
+
+// ---------- State ----------
+const state = {
+  teams: {},            // { teamName: { name, players: [{name, ppd, mpr}] } }
+  teamNames: [],        // sorted list of team names
+  lastUpdated: null,
+  away: {
+    teamName: MY_TEAM,
+    slots: [null, null, null, null]   // each: {type:'player', name} | {type:'sub', name, ppd, mpr}
+  },
+  home: {
+    teamName: DEFAULT_OPPONENT,
+    slots: [null, null, null, null]
+  }
+};
+
+// ---------- Pairing schedules (fixed WVCL rotation) ----------
+// Each game: left = {team:'A'|'H', a, b}, right = {team:'A'|'H', a, b}
+// a, b are 0-indexed slot numbers in that team (0..3)
+const X01_GAMES = [
+  { left:{team:'H',a:0,b:1}, right:{team:'A',a:0,b:1} },  // G1
+  { left:{team:'A',a:3,b:2}, right:{team:'H',a:3,b:2} },  // G2
+  { left:{team:'H',a:2,b:0}, right:{team:'A',a:1,b:3} },  // G3
+  { left:{team:'A',a:2,b:0}, right:{team:'H',a:1,b:3} },  // G4
+  { left:{team:'H',a:1,b:2}, right:{team:'A',a:3,b:0} },  // G5
+  { left:{team:'A',a:1,b:2}, right:{team:'H',a:0,b:3} },  // G6
+];
+const CRICKET_GAMES = [
+  { left:{team:'H',a:3,b:1}, right:{team:'A',a:1,b:0} },  // G7
+  { left:{team:'A',a:2,b:3}, right:{team:'H',a:2,b:0} },  // G8
+  { left:{team:'H',a:0,b:3}, right:{team:'A',a:2,b:1} },  // G9
+  { left:{team:'A',a:0,b:3}, right:{team:'H',a:2,b:1} },  // G10
+  { left:{team:'H',a:3,b:2}, right:{team:'A',a:0,b:2} },  // G11
+  { left:{team:'A',a:3,b:1}, right:{team:'H',a:1,b:0} },  // G12
+];
+
+// ---------- Cricket handicap lookup (from spreadsheet U28:X43) ----------
+const CRICKET_THRESHOLDS = {
+  1: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
+  2: [0.1, 0.3, 0.4, 0.6, 0.7, 0.9, 1.0, 1.2, 1.3, 1.5, 1.6, 1.8, 1.9, 2.1],
+  3: [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8],
+};
+
+// ---------- Handicap math ----------
+function x01Start(avg, bestAvg) {
+  if (!bestAvg || bestAvg <= 0) return 501;
+  const raw = 501 * avg / bestAvg;
+  if (raw >= 501) return 501;
+  return Math.max(351, Math.round(raw));
+}
+
+function cricketTier(avgA, avgB) {
+  const u = Math.floor(Math.max(avgA, avgB));
+  const v = Math.floor(Math.min(avgA, avgB));
+  let w = 0;
+  [u, v].forEach(x => {
+    if (x >= 3 && x <= 7) w += 4;
+    else if (x === 2) w += 1;
+  });
+  if (w < 1) return 1;
+  if (w < 6) return 2;
+  return 3;
+}
+
+function cricketMarks(variance, tier) {
+  const th = CRICKET_THRESHOLDS[tier];
+  if (variance <= th[0]) return 0;
+  for (let i = 1; i < th.length; i++) {
+    if (variance < th[i]) return i;
+  }
+  return 14;
+}
+
+// ---------- Stat fetching (handles CORS via proxies) ----------
+async function fetchStatsHTML(url) {
+  // Try direct, then public CORS proxies in order.
+  const attempts = [
+    () => fetch(url).then(r => r.ok ? r.text() : Promise.reject(new Error('HTTP ' + r.status))),
+    () => fetch('https://corsproxy.io/?' + encodeURIComponent(url)).then(r => r.ok ? r.text() : Promise.reject(new Error('proxy1 HTTP ' + r.status))),
+    () => fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(url)).then(r => r.ok ? r.text() : Promise.reject(new Error('proxy2 HTTP ' + r.status))),
+    () => fetch('https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(url)).then(r => r.ok ? r.text() : Promise.reject(new Error('proxy3 HTTP ' + r.status))),
+  ];
+  let lastErr;
+  for (const attempt of attempts) {
+    try {
+      const text = await attempt();
+      if (text && text.length > 500) return text;
+      lastErr = new Error('Empty response');
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('All fetch attempts failed');
+}
+
+// ---------- HTML parsing ----------
+function parseReport(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // Find main table: has headers "Player", "PPD", "MPR"
+  let table = null;
+  for (const t of doc.querySelectorAll('table')) {
+    const headerCells = t.querySelectorAll('tr:first-child th, tr:first-child td');
+    const headers = Array.from(headerCells).map(c => c.textContent.trim());
+    if (headers.includes('PPD') && headers.includes('MPR') && headers.includes('Player')) {
+      table = t;
+      break;
+    }
+  }
+  if (!table) throw new Error('Stats table not found in report');
+
+  const rows = table.querySelectorAll('tr');
+  const teams = {};
+  let current = null;
+
+  for (let i = 1; i < rows.length; i++) {
+    const cells = Array.from(rows[i].querySelectorAll('td, th')).map(c => c.textContent.trim());
+    if (cells.length === 0) continue;
+
+    const first = cells[0];
+    if (cells.every(c => !c)) { current = null; continue; }
+
+    const restEmpty = cells.slice(1).every(c => !c);
+    if (first && restEmpty) {
+      // Team header
+      current = first;
+      teams[current] = { name: current, players: [] };
+      continue;
+    }
+
+    if (first === 'Team Totals:') { continue; }
+
+    if (current && first) {
+      const ppd = parseFloat(cells[3]);
+      const mpr = parseFloat(cells[4]);
+      if (!isNaN(ppd) && !isNaN(mpr)) {
+        teams[current].players.push({ name: first, ppd, mpr });
+      }
+    }
+  }
+
+  return teams;
+}
+
+// ---------- Utilities ----------
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function prettyName(name) {
+  // First word, title-cased: "TROY HUFFMASTER" -> "Troy"; "Cole KILEY" -> "Cole"
+  const first = String(name).trim().split(/\s+/)[0] || name;
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+}
+function setStatus(text, type) {
+  const el = document.getElementById('status');
+  el.className = 'status-info ' + (type || '');
+  el.innerHTML = '<span class="dot"></span>' + escapeHtml(text);
+}
+
+// ---------- Slot resolution ----------
+function getSlotStats(side, idx) {
+  const slot = state[side].slots[idx];
+  if (!slot) return null;
+  if (slot.type === 'sub') {
+    return {
+      name: slot.name && slot.name.trim() ? slot.name : 'Sub ' + (idx + 1),
+      ppd: Number.isFinite(slot.ppd) ? slot.ppd : SUB_DEFAULT_PPD,
+      mpr: Number.isFinite(slot.mpr) ? slot.mpr : SUB_DEFAULT_MPR,
+      isSub: true,
+    };
+  }
+  const team = state.teams[state[side].teamName];
+  if (!team) return null;
+  const p = team.players.find(pp => pp.name === slot.name);
+  if (!p) return null;
+  return { name: p.name, ppd: p.ppd, mpr: p.mpr, isSub: false };
+}
+
+// ---------- Rendering ----------
+function renderTeamSelects() {
+  const opts = state.teamNames.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+  for (const side of ['away', 'home']) {
+    const sel = document.getElementById(`${side}-team`);
+    sel.innerHTML = opts;
+    sel.value = state[side].teamName;
+  }
+}
+
+function renderSlots(side) {
+  const container = document.getElementById(`${side}-slots`);
+  const team = state.teams[state[side].teamName];
+  const roster = team ? team.players : [];
+  let html = '';
+  for (let i = 0; i < 4; i++) {
+    const slot = state[side].slots[i];
+    const isSub = slot && slot.type === 'sub';
+    const selectedName = slot && slot.type === 'player' ? slot.name : '';
+    const stats = getSlotStats(side, i);
+
+    const rosterOpts = roster.map(p => {
+      const sel = (p.name === selectedName) ? 'selected' : '';
+      return `<option value="${escapeHtml(p.name)}" ${sel}>${escapeHtml(prettyName(p.name))} — ${escapeHtml(p.name)}</option>`;
+    }).join('');
+
+    html += `
+      <div class="slot">
+        <div class="slot-num">${i+1}</div>
+        <div class="slot-body">
+          <div class="slot-row">
+            <select data-side="${side}" data-idx="${i}" class="slot-select">
+              <option value="" ${!slot ? 'selected' : ''}>— Select player —</option>
+              ${rosterOpts}
+              <option value="__SUB__" ${isSub ? 'selected' : ''}>+ NEW SUBSTITUTE</option>
+            </select>
+            <div class="slot-stats">
+              ${stats
+                ? `<span class="num">${stats.ppd.toFixed(2)}</span> PPD <span class="sep">·</span> <span class="num">${stats.mpr.toFixed(2)}</span> MPR`
+                : '<span style="color:var(--text-faint)">— — —</span>'}
+            </div>
+          </div>
+          ${isSub ? `
+          <div class="sub-inputs">
+            <input type="text" placeholder="Substitute name" value="${escapeHtml((slot && slot.name) || '')}" data-side="${side}" data-idx="${i}" data-sub="name">
+            <input type="number" step="0.01" min="0" value="${(slot && slot.ppd != null) ? slot.ppd : SUB_DEFAULT_PPD}" data-side="${side}" data-idx="${i}" data-sub="ppd" title="PPD">
+            <input type="number" step="0.01" min="0" value="${(slot && slot.mpr != null) ? slot.mpr : SUB_DEFAULT_MPR}" data-side="${side}" data-idx="${i}" data-sub="mpr" title="MPR">
+          </div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+function renderGames() {
+  renderX01Games();
+  renderCricketGames();
+}
+
+function renderX01Games() {
+  const container = document.getElementById('x01-games');
+  let html = '';
+  X01_GAMES.forEach((g, idx) => {
+    const gameNum = idx + 1;
+    const [l1, l2, r1, r2] = resolveFourPlayers(g);
+    const all = [l1, l2, r1, r2].filter(x => x);
+    const bestPPD = all.length ? Math.max(...all.map(x => x.ppd)) : 0;
+
+    const hcap = (p) => {
+      if (!p) return `<div class="handicap missing">—</div>`;
+      const v = x01Start(p.ppd, bestPPD);
+      let cls = '';
+      if (v >= 501) cls = 'full';
+      else if (v <= 351) cls = 'floor';
+      return `<div class="handicap ${cls}">${v}</div>`;
+    };
+    const nm = (p) => p ? escapeHtml(prettyName(p.name)) : '<span style="color:var(--text-faint)">—</span>';
+
+    html += `
+      <div class="game-row">
+        <div class="game-num">${gameNum}</div>
+        <div class="side">
+          ${hcap(l1)}
+          <div class="players"><span class="p1">${nm(l1)}</span><span class="amp">+</span><span class="p2">${nm(l2)}</span></div>
+          ${hcap(l2)}
+        </div>
+        <div class="vs">VS</div>
+        <div class="side">
+          ${hcap(r1)}
+          <div class="players"><span class="p1">${nm(r1)}</span><span class="amp">+</span><span class="p2">${nm(r2)}</span></div>
+          ${hcap(r2)}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function renderCricketGames() {
+  const container = document.getElementById('cricket-games');
+  let html = '';
+  CRICKET_GAMES.forEach((g, idx) => {
+    const gameNum = idx + 7;
+    const [l1, l2, r1, r2] = resolveFourPlayers(g);
+    const nm = (p) => p ? escapeHtml(prettyName(p.name)) : '<span style="color:var(--text-faint)">—</span>';
+
+    let leftMarks = '', rightMarks = '', leftAvg = null, rightAvg = null;
+    if (l1 && l2 && r1 && r2) {
+      leftAvg = (l1.mpr + l2.mpr) / 2;
+      rightAvg = (r1.mpr + r2.mpr) / 2;
+      const variance = Math.abs(leftAvg - rightAvg);
+      const tier = cricketTier(leftAvg, rightAvg);
+      const marks = cricketMarks(variance, tier);
+      if (leftAvg < rightAvg) {
+        leftMarks = marks > 0 ? `<div class="handicap marks">+${marks}</div>` : `<div class="handicap blank">—</div>`;
+        rightMarks = `<div class="handicap blank">—</div>`;
+      } else if (rightAvg < leftAvg) {
+        leftMarks = `<div class="handicap blank">—</div>`;
+        rightMarks = marks > 0 ? `<div class="handicap marks">+${marks}</div>` : `<div class="handicap blank">—</div>`;
+      } else {
+        leftMarks = `<div class="handicap blank">even</div>`;
+        rightMarks = `<div class="handicap blank">even</div>`;
+      }
+    } else {
+      leftMarks = `<div class="handicap missing">—</div>`;
+      rightMarks = `<div class="handicap missing">—</div>`;
+    }
+
+    const leftAvgStr = leftAvg != null ? leftAvg.toFixed(3) : '—';
+    const rightAvgStr = rightAvg != null ? rightAvg.toFixed(3) : '—';
+
+    html += `
+      <div class="game-row">
+        <div class="game-num">${gameNum}</div>
+        <div class="side">
+          ${leftMarks}
+          <div>
+            <div class="players"><span class="p1">${nm(l1)}</span><span class="amp">+</span><span class="p2">${nm(l2)}</span></div>
+            <div class="cricket-avgs">avg <span class="v">${leftAvgStr}</span></div>
+          </div>
+          <div class="handicap blank"></div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="side">
+          <div class="handicap blank"></div>
+          <div>
+            <div class="players"><span class="p1">${nm(r1)}</span><span class="amp">+</span><span class="p2">${nm(r2)}</span></div>
+            <div class="cricket-avgs">avg <span class="v">${rightAvgStr}</span></div>
+          </div>
+          ${rightMarks}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function resolveFourPlayers(game) {
+  const sideOf = (ref) => ref.team === 'A' ? 'away' : 'home';
+  return [
+    getSlotStats(sideOf(game.left), game.left.a),
+    getSlotStats(sideOf(game.left), game.left.b),
+    getSlotStats(sideOf(game.right), game.right.a),
+    getSlotStats(sideOf(game.right), game.right.b),
+  ];
+}
+
+function renderAll() {
+  renderTeamSelects();
+  renderSlots('away');
+  renderSlots('home');
+  renderGames();
+}
+
+// ---------- Defaults after stats load ----------
+function autoPopulateSlots(side) {
+  const team = state.teams[state[side].teamName];
+  if (!team) { state[side].slots = [null,null,null,null]; return; }
+  // Default to first 4 players in roster order (roster is already MPR-sorted from the report)
+  const picks = team.players.slice(0, 4);
+  state[side].slots = [0,1,2,3].map(i =>
+    picks[i] ? { type: 'player', name: picks[i].name } : null
+  );
+}
+
+function pickDefaultTeams() {
+  // Prefer MY_TEAM for away (user's team); Huckleberries for home; else first two.
+  const names = state.teamNames;
+  const hasMine = names.includes(MY_TEAM);
+  const hasOpp = names.includes(DEFAULT_OPPONENT);
+
+  state.away.teamName = hasMine ? MY_TEAM : names[0];
+  if (hasOpp && names[0] !== DEFAULT_OPPONENT) {
+    state.home.teamName = DEFAULT_OPPONENT;
+  } else {
+    state.home.teamName = names.find(n => n !== state.away.teamName) || names[0];
+  }
+}
+
+// ---------- Event wiring ----------
+function onTeamChange(side, newTeam) {
+  state[side].teamName = newTeam;
+  autoPopulateSlots(side);
+  renderSlots(side);
+  renderGames();
+}
+
+function onSlotChange(side, idx, value) {
+  if (value === '') {
+    state[side].slots[idx] = null;
+  } else if (value === '__SUB__') {
+    state[side].slots[idx] = {
+      type: 'sub', name: '', ppd: SUB_DEFAULT_PPD, mpr: SUB_DEFAULT_MPR
+    };
+  } else {
+    state[side].slots[idx] = { type: 'player', name: value };
+  }
+  renderSlots(side);
+  renderGames();
+}
+
+function onSubFieldChange(side, idx, field, value) {
+  const slot = state[side].slots[idx];
+  if (!slot || slot.type !== 'sub') return;
+  if (field === 'name') slot.name = value;
+  else slot[field] = parseFloat(value) || 0;
+  // Don't re-render slots (would lose focus), just update stats + games
+  const statsEl = document.querySelector(`.slot-select[data-side="${side}"][data-idx="${idx}"]`)
+    ?.closest('.slot-row')?.querySelector('.slot-stats');
+  if (statsEl) {
+    const s = getSlotStats(side, idx);
+    if (s) statsEl.innerHTML = `<span class="num">${s.ppd.toFixed(2)}</span> PPD <span class="sep">·</span> <span class="num">${s.mpr.toFixed(2)}</span> MPR`;
+  }
+  renderGames();
+}
+
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.id === 'away-team' || t.id === 'home-team') {
+    onTeamChange(t.id === 'away-team' ? 'away' : 'home', t.value);
+  } else if (t.classList.contains('slot-select')) {
+    onSlotChange(t.dataset.side, +t.dataset.idx, t.value);
+  } else if (t.dataset.sub) {
+    onSubFieldChange(t.dataset.side, +t.dataset.idx, t.dataset.sub, t.value);
+  }
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.dataset.sub) {
+    onSubFieldChange(t.dataset.side, +t.dataset.idx, t.dataset.sub, t.value);
+  }
+});
+
+// ---------- Init ----------
+async function refresh() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  setStatus('Fetching live stats…', 'loading');
+  try {
+    const html = await fetchStatsHTML(STATS_URL);
+    const teams = parseReport(html);
+    const names = Object.keys(teams).sort((a,b) => a.localeCompare(b));
+    if (names.length === 0) throw new Error('No teams parsed from report');
+    state.teams = teams;
+    state.teamNames = names;
+    state.lastUpdated = new Date();
+    pickDefaultTeams();
+    autoPopulateSlots('away');
+    autoPopulateSlots('home');
+    renderAll();
+    const time = state.lastUpdated.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    const teamCount = names.length;
+    const playerCount = Object.values(teams).reduce((s,t) => s + t.players.length, 0);
+    setStatus(`Loaded ${teamCount} teams · ${playerCount} players · ${time}`, 'ok');
+  } catch (err) {
+    console.error(err);
+    setStatus('Unable to fetch stats — ' + err.message + '. Check network or try again.', 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('refresh-btn').addEventListener('click', refresh);
+
+// Collapse/expand the lineup section
+document.getElementById('collapse-lineup').addEventListener('click', (e) => {
+  const grid = document.getElementById('lineup-grid');
+  const btn = e.currentTarget;
+  const collapsed = grid.classList.toggle('collapsed');
+  btn.textContent = collapsed ? 'Show' : 'Hide';
+  btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+});
+
+refresh();
+</script>
+</body>
+</html>
