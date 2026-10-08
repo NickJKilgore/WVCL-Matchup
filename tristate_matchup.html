@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tri-State Matchup — Kings Eat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1419;
+    --surface: #171e26;
+    --surface-2: #212b36;
+    --border: #2b3842;
+    --border-lit: #44596a;
+    --text: #e2eaf2;
+    --text-dim: #86a0b4;
+    --text-faint: #4a5e70;
+    --accent: #4e8bb8;        /* steel blue — Tri-State accent */
+    --accent-hot: #6fa6d1;
+    --cream: #e6edf3;
+    --green: #7fa856;
+    --yellow: #d4a93a;
+    --rose: #c75d4e;          /* used sparingly for errors / cricket marks */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: 'Archivo', system-ui, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 20px 48px;
+    background-image:
+      radial-gradient(ellipse at 15% 0%, rgba(78,139,184,0.10), transparent 50%),
+      radial-gradient(ellipse at 85% 100%, rgba(127,168,86,0.05), transparent 50%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  button, select, input { -webkit-tap-highlight-color: transparent; }
+  .container { max-width: 1180px; margin: 0 auto; }
+
+  /* ============ HEADER ============ */
+  header {
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(34px, 5.5vw, 54px);
+    letter-spacing: 3px;
+    color: var(--cream);
+    line-height: 0.95;
+  }
+  h1 .accent { color: var(--accent); }
+  .sub {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .sub .team { color: var(--cream); }
+  .bullseye {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, var(--accent) 22%, var(--cream) 22% 38%, #141a21 38% 56%, var(--cream) 56% 72%, #141a21 72%);
+    border: 2px solid var(--border-lit);
+    flex-shrink: 0;
+    box-shadow: 0 0 24px rgba(78,139,184,0.25);
+  }
+
+  /* ============ STATUS BAR ============ */
+  .status-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .status-bar button {
+    background: var(--accent);
+    color: var(--cream);
+    border: none;
+    padding: 7px 16px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 1.5px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.15s;
+  }
+  .status-bar button:hover { background: var(--accent-hot); }
+  .status-bar button:disabled { background: var(--border); cursor: not-allowed; color: var(--text-faint); }
+  .status-info { color: var(--text-dim); flex: 1; min-width: 200px; }
+  .status-info.loading { color: var(--yellow); }
+  .status-info.error { color: var(--rose); }
+  .status-info.ok { color: var(--green); }
+  .status-info .dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; margin-right: 6px; vertical-align: middle;
+  }
+
+  /* ============ LINEUP ============ */
+  .lineup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 760px) { .lineup-grid { grid-template-columns: 1fr; } }
+
+  .lineup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px 20px 16px;
+    position: relative;
+  }
+  .lineup-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+  .lineup-card.home::before { background: var(--green); }
+
+  .label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .team-select-wrap { margin-bottom: 14px; }
+  select.team-select {
+    width: 100%;
+    padding: 9px 12px;
+    background: var(--surface-2);
+    color: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+  }
+  select.team-select:focus { outline: none; border-color: var(--accent); }
+
+  .slot {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    align-items: start;
+    margin-bottom: 8px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border);
+  }
+  .slot:first-of-type { border-top: 1px solid var(--border-lit); }
+  .slot-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    color: var(--accent);
+    text-align: center;
+    line-height: 1;
+    padding-top: 4px;
+  }
+  .lineup-card.home .slot-num { color: var(--green); }
+
+  .slot-body { display: flex; flex-direction: column; gap: 6px; }
+  .slot-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .slot-row select, .slot-row input {
+    width: 100%;
+    padding: 8px 9px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 15px;
+  }
+  .slot-row select:focus, .slot-row input:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .slot-stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+  .slot-stats .num { color: var(--cream); font-weight: 600; }
+  .slot-stats .sep { color: var(--text-faint); margin: 0 4px; }
+
+  .sub-inputs {
+    display: grid;
+    grid-template-columns: 1fr 92px 92px;
+    gap: 6px;
+  }
+  .sub-inputs input { font-size: 13px; padding: 6px 8px; }
+  .sub-inputs input[type="number"] {
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+  }
+
+  /* ============ BOARD ============ */
+  .board-section { margin-bottom: 26px; }
+  .board-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2.5px;
+    color: var(--cream);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .board-title .dot { color: var(--accent); margin: 0 4px; }
+  .board-title .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  .game-row {
+    display: grid;
+    grid-template-columns: 36px 1fr 36px 1fr;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-left: 3px solid var(--border);
+    margin-bottom: 3px;
+    gap: 14px;
+    transition: border-color 0.15s;
+  }
+  .game-row:hover { border-left-color: var(--accent); }
+  .game-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--text-faint);
+    text-align: center;
+    line-height: 1;
+  }
+  .side {
+    display: grid;
+    grid-template-columns: 56px 1fr 56px;
+    align-items: center;
+    gap: 10px;
+  }
+  /* Small side-of-game label (AWAY / HOME) above each pairing */
+  .side-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--text-faint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 2px;
+  }
+  .side-label.away { color: rgba(78,139,184,0.6); }
+  .side-label.home { color: rgba(127,168,86,0.6); }
+  .players {
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.25;
+  }
+  .players .p1, .players .p2 { display: inline-block; }
+  .players .amp {
+    color: var(--text-faint);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 6px;
+    font-size: 11px;
+  }
+  .handicap {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 7px 6px;
+    background: var(--surface-2);
+    color: var(--cream);
+    border-radius: 2px;
+    text-align: center;
+    min-width: 54px;
+    letter-spacing: 0.02em;
+  }
+  .handicap.full { color: var(--green); background: rgba(127,168,86,0.08); }
+  .handicap.floor { color: var(--yellow); background: rgba(212,169,58,0.07); }
+  .handicap.marks {
+    color: var(--rose);
+    background: rgba(199,93,78,0.09);
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .handicap.blank { color: var(--text-faint); background: transparent; opacity: 0.3; }
+  .handicap.missing { color: var(--text-faint); background: transparent; }
+  .vs {
+    font-family: 'Bebas Neue', sans-serif;
+    color: var(--accent);
+    font-size: 14px;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .cricket-avgs {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-faint);
+    text-align: center;
+    margin-top: 2px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .cricket-avgs .v { color: var(--text-dim); }
+
+  /* Game 13 (701) card */
+  .seven-oh-one {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--yellow);
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 36px 1fr 1fr 1fr 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+  .seven-oh-one .game-num { color: var(--yellow); }
+  .seven-oh-one .pair {
+    text-align: center;
+  }
+  .seven-oh-one .pair-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .seven-oh-one .pair.away .pair-label { color: rgba(78,139,184,0.75); }
+  .seven-oh-one .pair.home .pair-label { color: rgba(127,168,86,0.75); }
+  .seven-oh-one .pair-names {
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .seven-oh-one .pair-names .amp {
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 6px;
+    font-size: 11px;
+  }
+
+  /* Collapsible section toggle (button in board-title) */
+  .section-toggle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .section-toggle:hover { color: var(--cream); border-color: var(--border-lit); }
+  .lineup-grid.collapsed { display: none; }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 760px) {
+    body { padding: 14px 12px 32px; }
+
+    header { padding-bottom: 14px; margin-bottom: 14px; }
+    h1 { letter-spacing: 2px; }
+    .bullseye { width: 40px; height: 40px; }
+    .sub { font-size: 10px; letter-spacing: 0.2em; }
+
+    .status-bar { padding: 10px 12px; margin-bottom: 14px; }
+    .status-bar button { padding: 10px 14px; font-size: 15px; }
+    .status-info { font-size: 11px; }
+
+    select.team-select {
+      font-size: 20px;
+      padding: 12px 12px;
+      min-height: 48px;
+    }
+    .slot-row select, .slot-row input,
+    .sub-inputs input {
+      font-size: 16px;
+      padding: 11px 10px;
+      min-height: 44px;
+    }
+    .sub-inputs {
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+    .sub-inputs > input[data-sub="name"] {
+      grid-column: 1 / -1;
+    }
+    .sub-inputs input { padding: 10px 8px; }
+
+    .lineup-grid { gap: 14px; margin-bottom: 20px; }
+    .lineup-card { padding: 14px 14px 12px; }
+    .team-select-wrap { margin-bottom: 10px; }
+
+    .slot {
+      grid-template-columns: 24px 1fr;
+      gap: 8px;
+      padding: 7px 0;
+    }
+    .slot-num { font-size: 22px; padding-top: 8px; }
+    .slot-row { grid-template-columns: 1fr; gap: 4px; }
+    .slot-stats {
+      font-size: 11px;
+      text-align: left;
+      padding-left: 2px;
+    }
+
+    .board-title { font-size: 20px; letter-spacing: 2px; padding-bottom: 8px; }
+    .board-title .meta { font-size: 9px; }
+    .board-section { margin-bottom: 18px; }
+
+    .game-row {
+      display: block;
+      padding: 12px 14px 10px 44px;
+      position: relative;
+      margin-bottom: 4px;
+    }
+    .game-num {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 28px;
+      font-size: 22px;
+      line-height: 1;
+    }
+    .game-row .side {
+      grid-template-columns: 54px 1fr 54px;
+      gap: 8px;
+    }
+    .game-row .side > div:first-child > .players,
+    .game-row .side > .players { font-size: 13px; }
+    .players { font-size: 13px; }
+    .players .amp { font-size: 10px; margin: 0 4px; }
+
+    .handicap {
+      font-size: 14px;
+      padding: 6px 4px;
+      min-width: 48px;
+    }
+    .handicap.marks { font-size: 15px; }
+
+    .vs {
+      font-size: 10px;
+      padding: 3px 0;
+      color: var(--text-faint);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 2px 0;
+    }
+    .vs::before, .vs::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      opacity: 0.6;
+    }
+
+    .cricket-avgs { font-size: 8px; }
+
+    .seven-oh-one {
+      grid-template-columns: 1fr 1fr;
+      padding: 12px 14px 10px 44px;
+      position: relative;
+      gap: 10px 12px;
+    }
+    .seven-oh-one .game-num {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 28px;
+      font-size: 22px;
+      line-height: 1;
+      grid-column: unset;
+    }
+    .seven-oh-one .pair-names { font-size: 13px; }
+    .seven-oh-one .pair-names .amp { font-size: 10px; margin: 0 4px; }
+
+    footer { margin-top: 22px; font-size: 9px; }
+    footer .key { gap: 10px 14px; margin-bottom: 4px; }
+  }
+
+  footer {
+    margin-top: 36px;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+    text-align: center;
+    line-height: 1.7;
+  }
+  footer .key {
+    display: inline-flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 6px;
+  }
+  footer .k { display: inline-flex; align-items: center; gap: 5px; }
+  footer .k::before {
+    content: ''; width: 9px; height: 9px; border-radius: 1px;
+  }
+  footer .k.full::before { background: var(--green); }
+  footer .k.scaled::before { background: var(--cream); }
+  footer .k.floor::before { background: var(--yellow); }
+  footer .k.marks::before { background: var(--rose); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>MATCHUP <span class="accent">BOARD</span></h1>
+      <div class="sub">Tri-State · <span class="team" id="hdr-myteam">Kings Eat</span> · <span id="hdr-league">THUR27</span></div>
+    </div>
+    <div class="bullseye" aria-hidden="true"></div>
+  </header>
+
+  <div class="status-bar">
+    <button id="refresh-btn">Refresh Stats</button>
+    <span class="status-info" id="status"><span class="dot"></span>Ready</span>
+  </div>
+
+  <div class="board-section">
+    <div class="board-title">
+      <span>Lineup <span class="dot">●</span></span>
+      <button class="section-toggle" id="collapse-lineup" aria-expanded="true">Hide</button>
+    </div>
+    <div class="lineup-grid" id="lineup-grid">
+      <div class="lineup-card away">
+        <div class="team-select-wrap">
+          <div class="label">Away Team</div>
+          <select id="away-team" class="team-select" aria-label="Away team"></select>
+        </div>
+        <div id="away-slots"></div>
+      </div>
+      <div class="lineup-card home">
+        <div class="team-select-wrap">
+          <div class="label">Home Team</div>
+          <select id="home-team" class="team-select" aria-label="Home team"></select>
+        </div>
+        <div id="home-slots"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="board-section">
+    <div class="board-title">
+      <span>501 Doubles <span class="dot">●</span></span>
+      <span class="meta">Games 1–6 · Away left · Home right</span>
+    </div>
+    <div id="x01-games"></div>
+  </div>
+
+  <div class="board-section">
+    <div class="board-title">
+      <span>Cricket Doubles <span class="dot">●</span></span>
+      <span class="meta">Games 7–12 · Marks awarded to weaker pair</span>
+    </div>
+    <div id="cricket-games"></div>
+  </div>
+
+  <div class="board-section">
+    <div class="board-title">
+      <span>701 Game 13 <span class="dot" style="color:var(--yellow)">●</span></span>
+      <span class="meta">Tri-State pairing: Slots 1 &amp; 3 vs Slots 2 &amp; 4</span>
+    </div>
+    <div id="g13"></div>
+  </div>
+
+  <footer>
+    <div class="key">
+      <span class="k full">Starts at 501 (best player)</span>
+      <span class="k scaled">Scaled start</span>
+      <span class="k floor">Floored at 301</span>
+      <span class="k marks">Cricket marks awarded</span>
+    </div>
+    501 = min(501, max(round(501 · avg / best), 301)) per player · Cricket marks (cap 13) = variance × skill-tier lookup · 701 pairing: 1 &amp; 3 vs 2 &amp; 4
+  </footer>
+
+</div>
+
+<script>
+// ============================================================
+//  TRI-STATE MATCHUP BOARD — THUR27 Thursday Night
+// ============================================================
+
+const STATS_URL = 'https://leagueleader.net/sharedreport.php?operatorid=124&code=158caf56-88a2-455f-b253-749b79ca2379';
+const MY_TEAM = 'Kings Eat';
+const DEFAULT_OPPONENT = 'Oceans 4';
+const SUB_DEFAULT_PPD = 20.0;
+const SUB_DEFAULT_MPR = 2.0;
+
+// Baked-in snapshot of THUR27 rosters. Updates when Nick re-fetches and asks me
+// to refresh, OR when the live-fetch button succeeds (which only works when the
+// tool is served from https://, not from a local file://).
+const SNAPSHOT_DATE = 'Oct 6, 2026';
+const SNAPSHOT_WEEK = 'through Week 3';
+const BAKED_TEAMS = [
+  // ----- Division A -----
+  { name: 'Dart Sharks', division: 'A', players: [
+    { name: 'Cole Kiley',       ppd: 25.76, mpr: 3.04 },
+    { name: 'Charles Vaughn',   ppd: 24.02, mpr: 3.00 },
+    { name: 'Donald Bauman',    ppd: 24.72, mpr: 2.35 },
+    { name: 'Cory Kirby',       ppd: 17.10, mpr: 2.31 },
+    { name: 'Stephen Slater',   ppd: 17.62, mpr: 2.00 },
+    { name: 'Alexis Potter',    ppd: 15.36, mpr: 1.64 },
+  ]},
+  { name: 'Darts Are Dumb', division: 'A', players: [
+    { name: 'Danny Vaughan',    ppd: 29.29, mpr: 3.06 },
+    { name: 'Derrick Waddell',  ppd: 21.22, mpr: 2.05 },
+    { name: 'Gene Martin',      ppd: 19.68, mpr: 1.85 },
+    { name: 'Amanda Vaughan',   ppd: 19.35, mpr: 1.64 },
+    { name: 'Tyler Fletcher',   ppd: 15.07, mpr: 1.22 },
+  ]},
+  { name: 'Kings Eat', division: 'A', players: [
+    { name: 'TROY HUFFMASTER',  ppd: 25.77, mpr: 3.95 },
+    { name: 'Vince Ciaccia',    ppd: 25.17, mpr: 2.85 },
+    { name: 'KYLE KELLEY',      ppd: 27.10, mpr: 2.76 },
+    { name: 'Jason Adams',      ppd: 27.63, mpr: 2.59 },
+    { name: 'Nick Kilgore',     ppd: 24.20, mpr: 2.39 },
+  ]},
+  { name: 'Oceans 4', division: 'A', players: [
+    { name: 'Corey Brammer',    ppd: 34.20, mpr: 3.48 },
+    { name: 'Cole Kiley',       ppd: 25.91, mpr: 3.20 },
+    { name: 'Dave Maynard',     ppd: 29.60, mpr: 3.04 },
+    { name: 'Jacob Lyons',      ppd: 24.89, mpr: 2.37 },
+    { name: 'Cobin Sanborn',    ppd: 22.58, mpr: 2.18 },
+  ]},
+  { name: 'On The Wire', division: 'A', players: [
+    { name: 'Dave Moore',       ppd: 22.72, mpr: 2.97 },
+    { name: 'Charles Bridges',  ppd: 26.93, mpr: 2.85 },
+    { name: 'Craig Mestel',     ppd: 29.96, mpr: 2.55 },
+    { name: 'Xavier Mestel',    ppd: 18.78, mpr: 2.06 },
+  ]},
+  { name: 'WildCard', division: 'A', players: [
+    { name: 'Andy Wray',        ppd: 25.11, mpr: 2.91 },
+    { name: 'Brian Withrow',    ppd: 26.91, mpr: 2.59 },
+    { name: 'Chase Dial',       ppd: 25.40, mpr: 2.32 },
+    { name: 'Warren Johnson',   ppd: 20.14, mpr: 1.79 },
+    { name: 'David Sunt',       ppd: 16.36, mpr: 1.59 },
+  ]},
+  // ----- Division B -----
+  { name: 'B.D.E.', division: 'B', players: [
+    { name: 'ISAAC DULING',     ppd: 22.98, mpr: 2.72 },
+    { name: 'KEITH MARCUM',     ppd: 26.03, mpr: 2.35 },
+    { name: 'Anna Myers',       ppd: 17.97, mpr: 1.84 },
+    { name: 'Amy Laishley',     ppd: 14.24, mpr: 1.45 },
+  ]},
+  { name: 'Bout To Bust', division: 'B', players: [
+    { name: 'Aaron Burns',      ppd: 19.50, mpr: 2.63 },
+    { name: 'Beckett Ward',     ppd: 19.08, mpr: 2.02 },
+    { name: 'Luc Adkins',       ppd: 19.29, mpr: 1.97 },
+    { name: 'Mikey Wilkes',     ppd: 15.91, mpr: 1.67 },
+    { name: 'Alex Adkins',      ppd: 15.25, mpr: 1.51 },
+    { name: 'JOE ST.CLAIR',     ppd: 16.04, mpr: 1.45 },
+  ]},
+  { name: 'Just The Tip', division: 'B', players: [
+    { name: 'Craig King',       ppd: 19.27, mpr: 1.76 },
+    { name: 'Jordan Merkle',    ppd: 15.29, mpr: 1.76 },
+    { name: 'David Allen',      ppd: 17.71, mpr: 1.55 },
+    { name: 'Sarah Meadows',    ppd: 15.16, mpr: 0.87 },
+  ]},
+  { name: 'Play Time Is Over', division: 'B', players: [
+    { name: 'Randy Stacy',      ppd: 18.39, mpr: 2.46 },
+    { name: 'Deshawn Taylor',   ppd: 19.28, mpr: 2.24 },
+    { name: 'Chris Arty',       ppd: 21.58, mpr: 1.87 },
+    { name: 'John Evans',       ppd: 17.23, mpr: 1.86 },
+  ]},
+  { name: 'Rat Bastards', division: 'B', players: [
+    { name: 'Shaun Stephens',   ppd: 22.29, mpr: 2.62 },
+    { name: 'Cory Hughes',      ppd: 17.78, mpr: 2.43 },
+    { name: 'JESSE TETER',      ppd: 17.15, mpr: 2.02 },
+    { name: 'Andy Meadows',     ppd: 18.83, mpr: 1.96 },
+    { name: 'Jonathan Alsop',   ppd: 18.34, mpr: 1.84 },
+  ]},
+  { name: 'Throwing Impaired', division: 'B', players: [
+    { name: 'RJ',               ppd: 22.20, mpr: 2.34 },
+    { name: 'Matt Johnson',     ppd: 22.32, mpr: 2.18 },
+    { name: 'Frank Canada',     ppd: 19.91, mpr: 2.14 },
+    { name: 'Mykel Booth',      ppd: 20.34, mpr: 1.85 },
+  ]},
+  // ----- Division C -----
+  { name: 'Aiming For Trouble', division: 'C', players: [
+    { name: 'Faith Stevens',    ppd: 15.38, mpr: 1.58 },
+    { name: 'Madison McCourt',  ppd: 16.01, mpr: 1.48 },
+    { name: 'Haylee',           ppd: 15.47, mpr: 1.28 },
+    { name: 'Brandy Felcan',    ppd: 12.16, mpr: 1.24 },
+    { name: 'Chris Minor',      ppd: 13.00, mpr: 1.17 },
+  ]},
+  { name: 'Bitch N TroubleMaker', division: 'C', players: [
+    { name: 'Kimmie Bowman',    ppd: 12.17, mpr: 1.54 },
+    { name: 'HEATHER COLLEY',   ppd: 14.72, mpr: 1.42 },
+    { name: 'Shirley Bowman',   ppd: 15.35, mpr: 1.33 },
+    { name: 'Sherry Stanley',   ppd: 14.18, mpr: 1.10 },
+  ]},
+  { name: 'Dart Vaders', division: 'C', players: [
+    { name: 'Brad Fouch',       ppd: 18.60, mpr: 1.49 },
+    { name: 'Teresa Reynolds',  ppd: 15.62, mpr: 1.39 },
+    { name: 'Morgan Amend',     ppd: 15.51, mpr: 1.26 },
+    { name: 'Brian Bellville',  ppd: 14.98, mpr: 1.10 },
+  ]},
+  { name: 'Dartaholics', division: 'C', players: [
+    { name: 'Spencer Vanderhorn', ppd: 25.99, mpr: 2.05 },
+    { name: 'DIRK HARRISON',    ppd: 18.84, mpr: 1.73 },
+    { name: 'CURT Foltz',       ppd: 19.29, mpr: 1.71 },
+    { name: 'SAMSON TEKA',      ppd: 14.80, mpr: 1.38 },
+    { name: 'Tim Buckland',     ppd: 12.95, mpr: 0.96 },
+  ]},
+  { name: 'Skittle Squad', division: 'C', players: [
+    { name: 'Thomas Ramey',     ppd: 13.02, mpr: 1.52 },
+    { name: 'Leah Cuntningham', ppd: 12.65, mpr: 1.39 },
+    { name: 'Ally Layman',      ppd: 15.96, mpr: 1.29 },
+    { name: 'Maggie Parrish',   ppd: 15.67, mpr: 1.25 },
+    { name: 'Chase Dye',        ppd: 13.34, mpr: 1.24 },
+    { name: 'Erica Fitzpatrick', ppd: 14.07, mpr: 1.09 },
+  ]},
+];
+
+function loadBakedStats() {
+  const teams = {};
+  for (const t of BAKED_TEAMS) {
+    teams[t.name] = {
+      name: t.name,
+      division: t.division,
+      players: t.players.map(p => ({ name: p.name, ppd: p.ppd, mpr: p.mpr })),
+    };
+  }
+  return teams;
+}
+
+// Tri-State specific constants
+const X01_FLOOR = 301;        // vs WVCL's 351 — formula: 500*0.6 + 1
+const CRICKET_MAX_MARKS = 13; // vs WVCL's 14
+
+// ---------- State ----------
+const state = {
+  teams: {},            // { teamName: { name, division, players: [{name, ppd, mpr}] } }
+  teamNames: [],        // sorted list of team names
+  lastUpdated: null,
+  away: {
+    teamName: MY_TEAM,
+    slots: [null, null, null, null]
+  },
+  home: {
+    teamName: DEFAULT_OPPONENT,
+    slots: [null, null, null, null]
+  }
+};
+
+// ---------- Pairing schedules (Tri-State rotation) ----------
+// Each game: left is ALWAYS Away team, right is ALWAYS Home team.
+// a, b are 0-indexed slot numbers (0..3)
+// 501 pairings — identical to WVCL (just normalized to Away-left layout)
+const X01_GAMES = [
+  { left:{team:'A',a:0,b:1}, right:{team:'H',a:0,b:1} },  // G1
+  { left:{team:'A',a:3,b:2}, right:{team:'H',a:3,b:2} },  // G2
+  { left:{team:'A',a:1,b:3}, right:{team:'H',a:2,b:0} },  // G3
+  { left:{team:'A',a:2,b:0}, right:{team:'H',a:1,b:3} },  // G4
+  { left:{team:'A',a:3,b:0}, right:{team:'H',a:1,b:2} },  // G5
+  { left:{team:'A',a:1,b:2}, right:{team:'H',a:0,b:3} },  // G6
+];
+// Cricket pairings — Games 11 & 12 Away pairings differ from WVCL
+const CRICKET_GAMES = [
+  { left:{team:'A',a:1,b:0}, right:{team:'H',a:3,b:1} },  // G7
+  { left:{team:'A',a:2,b:3}, right:{team:'H',a:2,b:0} },  // G8
+  { left:{team:'A',a:2,b:1}, right:{team:'H',a:0,b:3} },  // G9
+  { left:{team:'A',a:0,b:3}, right:{team:'H',a:2,b:1} },  // G10
+  { left:{team:'A',a:3,b:1}, right:{team:'H',a:3,b:2} },  // G11  (WVCL away was {0,2})
+  { left:{team:'A',a:0,b:2}, right:{team:'H',a:0,b:1} },  // G12  (WVCL away was {3,1})
+];
+
+// ---------- Cricket handicap lookup (same thresholds as WVCL) ----------
+const CRICKET_THRESHOLDS = {
+  1: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4],
+  2: [0.1, 0.3, 0.4, 0.6, 0.7, 0.9, 1.0, 1.2, 1.3, 1.5, 1.6, 1.8, 1.9, 2.1],
+  3: [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8],
+};
+
+// ---------- Handicap math ----------
+function x01Start(avg, bestAvg) {
+  if (!bestAvg || bestAvg <= 0) return 501;
+  const raw = 501 * avg / bestAvg;
+  if (raw >= 501) return 501;
+  return Math.max(X01_FLOOR, Math.round(raw));
+}
+
+function cricketTier(avgA, avgB) {
+  const u = Math.floor(Math.max(avgA, avgB));
+  const v = Math.floor(Math.min(avgA, avgB));
+  let w = 0;
+  [u, v].forEach(x => {
+    if (x >= 3 && x <= 7) w += 4;
+    else if (x === 2) w += 1;
+  });
+  if (w < 1) return 1;
+  if (w < 6) return 2;
+  return 3;
+}
+
+function cricketMarks(variance, tier) {
+  const th = CRICKET_THRESHOLDS[tier];
+  if (variance <= th[0]) return 0;
+  for (let i = 1; i < th.length; i++) {
+    if (variance < th[i]) return i;
+  }
+  return CRICKET_MAX_MARKS;
+}
+
+// ---------- Stat fetching (handles CORS via proxies) ----------
+async function fetchStatsHTML(url) {
+  const attempts = [
+    { name: 'direct',       build: u => u },
+    { name: 'corsproxy.io', build: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
+    { name: 'allorigins',   build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
+    { name: 'codetabs',     build: u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u) },
+    { name: 'thingproxy',   build: u => 'https://thingproxy.freeboard.io/fetch/' + u },
+  ];
+  const errors = [];
+  for (const a of attempts) {
+    try {
+      const r = await fetch(a.build(url));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const text = await r.text();
+      if (!text || text.length < 500) throw new Error('empty/short response (' + (text ? text.length : 0) + 'b)');
+      console.log(`[fetchStats] ${a.name} ✓ (${text.length} bytes)`);
+      return text;
+    } catch (e) {
+      const msg = e && e.message ? e.message : String(e);
+      console.warn(`[fetchStats] ${a.name} ✗ ${msg}`);
+      errors.push(`${a.name}: ${msg}`);
+    }
+  }
+  throw new Error('All proxies failed — ' + errors.join(' | '));
+}
+
+// ---------- HTML parsing (handles dual-table AND single-table formats) ----------
+// Tri-State THUR27 uses two tables per division: one with PPD, one with MPR.
+// WVCL has a single combined table. This parser handles both — it finds every
+// table that has a Player column and at least PPD or MPR, extracts whatever
+// numeric columns are present, and merges by (team, player) key.
+function parseReport(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  // teams[teamName] = { name, division, players: Map(playerName, {name,ppd,mpr}) }
+  const teams = {};
+  let currentDivision = null;
+
+  // First pass: find division markers from the body text so we can tag teams.
+  // Pre-build an element-to-division map by walking in document order.
+  const divisionByElement = new WeakMap();
+  {
+    const walker = doc.createTreeWalker(doc.body || doc, NodeFilter.SHOW_ELEMENT, null);
+    let div = null;
+    while (walker.nextNode()) {
+      const el = walker.currentNode;
+      // Division headers come as text in a bare row or a heading
+      const txt = (el.textContent || '').trim();
+      const m = /^Division\s*:?\s*([A-Z])\s*$/i.exec(txt);
+      if (m && el.children.length === 0) {
+        div = m[1].toUpperCase();
+      }
+      if (el.tagName === 'TABLE') {
+        divisionByElement.set(el, div);
+      }
+    }
+  }
+
+  for (const table of doc.querySelectorAll('table')) {
+    const headerRow = table.querySelector('tr');
+    if (!headerRow) continue;
+    const headers = Array.from(headerRow.querySelectorAll('th, td')).map(c => c.textContent.trim());
+    const playerCol = headers.indexOf('Player');
+    const ppdCol = headers.indexOf('PPD');
+    const mprCol = headers.indexOf('MPR');
+    if (playerCol === -1 || (ppdCol === -1 && mprCol === -1)) continue;
+
+    const tableDiv = divisionByElement.get(table) || null;
+    const rows = table.querySelectorAll('tr');
+    let currentTeam = null;
+
+    for (let i = 1; i < rows.length; i++) {
+      const cells = Array.from(rows[i].querySelectorAll('td, th')).map(c => c.textContent.trim());
+      if (cells.length === 0) continue;
+      const first = cells[0];
+      if (!first) { continue; }
+      // Skip repeated header rows ("Player" shows up again mid-table)
+      if (first === 'Player') { continue; }
+      // Skip team-totals rows
+      if (first.startsWith('Team Totals')) { continue; }
+      // Skip division markers
+      if (/^Division\s*:?\s*[A-Z]$/i.test(first)) { continue; }
+
+      // A team-header row has the team name alone with the rest blank (or a trailing | mark)
+      const nonEmptyAfterFirst = cells.slice(1).filter(c => c).length;
+      if (nonEmptyAfterFirst === 0) {
+        currentTeam = first;
+        if (!teams[currentTeam]) {
+          teams[currentTeam] = {
+            name: currentTeam,
+            division: tableDiv,
+            players: new Map(),
+          };
+        } else if (!teams[currentTeam].division && tableDiv) {
+          teams[currentTeam].division = tableDiv;
+        }
+        continue;
+      }
+
+      if (!currentTeam) continue;
+
+      const ppdVal = ppdCol !== -1 ? parseFloat(cells[ppdCol]) : NaN;
+      const mprVal = mprCol !== -1 ? parseFloat(cells[mprCol]) : NaN;
+      if (isNaN(ppdVal) && isNaN(mprVal)) continue;
+
+      if (!teams[currentTeam].players.has(first)) {
+        teams[currentTeam].players.set(first, { name: first, ppd: 0, mpr: 0 });
+      }
+      const p = teams[currentTeam].players.get(first);
+      if (!isNaN(ppdVal)) p.ppd = ppdVal;
+      if (!isNaN(mprVal)) p.mpr = mprVal;
+    }
+  }
+
+  // Convert Maps to arrays. Keep only players with at least one real stat.
+  // Sort each team's roster by MPR desc then PPD desc so defaults pick the strongest.
+  const result = {};
+  for (const [tname, t] of Object.entries(teams)) {
+    const players = Array.from(t.players.values()).filter(p => p.ppd > 0 || p.mpr > 0);
+    if (players.length === 0) continue;
+    players.sort((a, b) => (b.mpr - a.mpr) || (b.ppd - a.ppd));
+    result[tname] = { name: tname, division: t.division, players };
+  }
+  return result;
+}
+
+// ---------- Utilities ----------
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function prettyName(name) {
+  // First word, title-cased: "TROY HUFFMASTER" -> "Troy"; "Cole KILEY" -> "Cole"
+  const first = String(name).trim().split(/\s+/)[0] || name;
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+}
+function setStatus(text, type) {
+  const el = document.getElementById('status');
+  el.className = 'status-info ' + (type || '');
+  el.innerHTML = '<span class="dot"></span>' + escapeHtml(text);
+}
+
+// ---------- Slot resolution ----------
+function getSlotStats(side, idx) {
+  const slot = state[side].slots[idx];
+  if (!slot) return null;
+  if (slot.type === 'sub') {
+    return {
+      name: slot.name && slot.name.trim() ? slot.name : 'Sub ' + (idx + 1),
+      ppd: Number.isFinite(slot.ppd) ? slot.ppd : SUB_DEFAULT_PPD,
+      mpr: Number.isFinite(slot.mpr) ? slot.mpr : SUB_DEFAULT_MPR,
+      isSub: true,
+    };
+  }
+  const team = state.teams[state[side].teamName];
+  if (!team) return null;
+  const p = team.players.find(pp => pp.name === slot.name);
+  if (!p) return null;
+  return { name: p.name, ppd: p.ppd, mpr: p.mpr, isSub: false };
+}
+
+// ---------- Rendering ----------
+function renderTeamSelects() {
+  const opts = state.teamNames.map(t => {
+    const div = state.teams[t]?.division;
+    const label = div ? `${t} (Div ${div})` : t;
+    return `<option value="${escapeHtml(t)}">${escapeHtml(label)}</option>`;
+  }).join('');
+  for (const side of ['away', 'home']) {
+    const sel = document.getElementById(`${side}-team`);
+    sel.innerHTML = opts;
+    sel.value = state[side].teamName;
+  }
+}
+
+function renderSlots(side) {
+  const container = document.getElementById(`${side}-slots`);
+  const team = state.teams[state[side].teamName];
+  const roster = team ? team.players : [];
+  let html = '';
+  for (let i = 0; i < 4; i++) {
+    const slot = state[side].slots[i];
+    const isSub = slot && slot.type === 'sub';
+    const selectedName = slot && slot.type === 'player' ? slot.name : '';
+    const stats = getSlotStats(side, i);
+
+    const rosterOpts = roster.map(p => {
+      const sel = (p.name === selectedName) ? 'selected' : '';
+      return `<option value="${escapeHtml(p.name)}" ${sel}>${escapeHtml(prettyName(p.name))} — ${escapeHtml(p.name)}</option>`;
+    }).join('');
+
+    html += `
+      <div class="slot">
+        <div class="slot-num">${i+1}</div>
+        <div class="slot-body">
+          <div class="slot-row">
+            <select data-side="${side}" data-idx="${i}" class="slot-select">
+              <option value="" ${!slot ? 'selected' : ''}>— Select player —</option>
+              ${rosterOpts}
+              <option value="__SUB__" ${isSub ? 'selected' : ''}>+ NEW SUBSTITUTE</option>
+            </select>
+            <div class="slot-stats">
+              ${stats
+                ? `<span class="num">${stats.ppd.toFixed(2)}</span> PPD <span class="sep">·</span> <span class="num">${stats.mpr.toFixed(2)}</span> MPR`
+                : '<span style="color:var(--text-faint)">— — —</span>'}
+            </div>
+          </div>
+          ${isSub ? `
+          <div class="sub-inputs">
+            <input type="text" placeholder="Substitute name" value="${escapeHtml((slot && slot.name) || '')}" data-side="${side}" data-idx="${i}" data-sub="name">
+            <input type="number" step="0.01" min="0" value="${(slot && slot.ppd != null) ? slot.ppd : SUB_DEFAULT_PPD}" data-side="${side}" data-idx="${i}" data-sub="ppd" title="PPD">
+            <input type="number" step="0.01" min="0" value="${(slot && slot.mpr != null) ? slot.mpr : SUB_DEFAULT_MPR}" data-side="${side}" data-idx="${i}" data-sub="mpr" title="MPR">
+          </div>` : ''}
+        </div>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+function renderGames() {
+  renderX01Games();
+  renderCricketGames();
+  renderG13();
+}
+
+function renderX01Games() {
+  const container = document.getElementById('x01-games');
+  let html = '';
+  X01_GAMES.forEach((g, idx) => {
+    const gameNum = idx + 1;
+    const [l1, l2, r1, r2] = resolveFourPlayers(g);
+    const all = [l1, l2, r1, r2].filter(x => x);
+    const bestPPD = all.length ? Math.max(...all.map(x => x.ppd)) : 0;
+
+    const hcap = (p) => {
+      if (!p) return `<div class="handicap missing">—</div>`;
+      const v = x01Start(p.ppd, bestPPD);
+      let cls = '';
+      if (v >= 501) cls = 'full';
+      else if (v <= X01_FLOOR) cls = 'floor';
+      return `<div class="handicap ${cls}">${v}</div>`;
+    };
+    const nm = (p) => p ? escapeHtml(prettyName(p.name)) : '<span style="color:var(--text-faint)">—</span>';
+
+    html += `
+      <div class="game-row">
+        <div class="game-num">${gameNum}</div>
+        <div class="side">
+          ${hcap(l1)}
+          <div class="players"><span class="p1">${nm(l1)}</span><span class="amp">+</span><span class="p2">${nm(l2)}</span></div>
+          ${hcap(l2)}
+        </div>
+        <div class="vs">VS</div>
+        <div class="side">
+          ${hcap(r1)}
+          <div class="players"><span class="p1">${nm(r1)}</span><span class="amp">+</span><span class="p2">${nm(r2)}</span></div>
+          ${hcap(r2)}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function renderCricketGames() {
+  const container = document.getElementById('cricket-games');
+  let html = '';
+  CRICKET_GAMES.forEach((g, idx) => {
+    const gameNum = idx + 7;
+    const [l1, l2, r1, r2] = resolveFourPlayers(g);
+    const nm = (p) => p ? escapeHtml(prettyName(p.name)) : '<span style="color:var(--text-faint)">—</span>';
+
+    let leftMarks = '', rightMarks = '', leftAvg = null, rightAvg = null;
+    if (l1 && l2 && r1 && r2) {
+      leftAvg = (l1.mpr + l2.mpr) / 2;
+      rightAvg = (r1.mpr + r2.mpr) / 2;
+      const variance = Math.abs(leftAvg - rightAvg);
+      const tier = cricketTier(leftAvg, rightAvg);
+      const marks = cricketMarks(variance, tier);
+      if (leftAvg < rightAvg) {
+        leftMarks = marks > 0 ? `<div class="handicap marks">+${marks}</div>` : `<div class="handicap blank">—</div>`;
+        rightMarks = `<div class="handicap blank">—</div>`;
+      } else if (rightAvg < leftAvg) {
+        leftMarks = `<div class="handicap blank">—</div>`;
+        rightMarks = marks > 0 ? `<div class="handicap marks">+${marks}</div>` : `<div class="handicap blank">—</div>`;
+      } else {
+        leftMarks = `<div class="handicap blank">even</div>`;
+        rightMarks = `<div class="handicap blank">even</div>`;
+      }
+    } else {
+      leftMarks = `<div class="handicap missing">—</div>`;
+      rightMarks = `<div class="handicap missing">—</div>`;
+    }
+
+    const leftAvgStr = leftAvg != null ? leftAvg.toFixed(3) : '—';
+    const rightAvgStr = rightAvg != null ? rightAvg.toFixed(3) : '—';
+
+    html += `
+      <div class="game-row">
+        <div class="game-num">${gameNum}</div>
+        <div class="side">
+          ${leftMarks}
+          <div>
+            <div class="players"><span class="p1">${nm(l1)}</span><span class="amp">+</span><span class="p2">${nm(l2)}</span></div>
+            <div class="cricket-avgs">avg <span class="v">${leftAvgStr}</span></div>
+          </div>
+          <div class="handicap blank"></div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="side">
+          <div class="handicap blank"></div>
+          <div>
+            <div class="players"><span class="p1">${nm(r1)}</span><span class="amp">+</span><span class="p2">${nm(r2)}</span></div>
+            <div class="cricket-avgs">avg <span class="v">${rightAvgStr}</span></div>
+          </div>
+          ${rightMarks}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// Game 13: 701 — Tri-State pairs slots 1&3 together and 2&4 together.
+// 4 pairs (2 Away + 2 Home) shown on one row so captains see the matchups at a glance.
+function renderG13() {
+  const container = document.getElementById('g13');
+  const nm = (p) => p ? escapeHtml(prettyName(p.name)) : '<span style="color:var(--text-faint)">—</span>';
+  // Slot indices 0,2 = pair "1 & 3"; slots 1,3 = pair "2 & 4"
+  const pairs = [
+    {sideClass: 'away', label: 'Away · 1 & 3', side: 'away', idxs: [0, 2]},
+    {sideClass: 'away', label: 'Away · 2 & 4', side: 'away', idxs: [1, 3]},
+    {sideClass: 'home', label: 'Home · 1 & 3', side: 'home', idxs: [0, 2]},
+    {sideClass: 'home', label: 'Home · 2 & 4', side: 'home', idxs: [1, 3]},
+  ];
+  const cells = pairs.map(p => {
+    const p1 = getSlotStats(p.side, p.idxs[0]);
+    const p2 = getSlotStats(p.side, p.idxs[1]);
+    return `
+      <div class="pair ${p.sideClass}">
+        <div class="pair-label">${p.label}</div>
+        <div class="pair-names">${nm(p1)}<span class="amp">+</span>${nm(p2)}</div>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="seven-oh-one">
+      <div class="game-num">13</div>
+      ${cells}
+    </div>
+  `;
+}
+
+function resolveFourPlayers(game) {
+  const sideOf = (ref) => ref.team === 'A' ? 'away' : 'home';
+  return [
+    getSlotStats(sideOf(game.left), game.left.a),
+    getSlotStats(sideOf(game.left), game.left.b),
+    getSlotStats(sideOf(game.right), game.right.a),
+    getSlotStats(sideOf(game.right), game.right.b),
+  ];
+}
+
+function renderAll() {
+  renderTeamSelects();
+  renderSlots('away');
+  renderSlots('home');
+  renderGames();
+}
+
+// ---------- Defaults after stats load ----------
+function autoPopulateSlots(side) {
+  const team = state.teams[state[side].teamName];
+  if (!team) { state[side].slots = [null,null,null,null]; return; }
+  // Default to top 4 players by MPR (roster is pre-sorted by parseReport)
+  const picks = team.players.slice(0, 4);
+  state[side].slots = [0,1,2,3].map(i =>
+    picks[i] ? { type: 'player', name: picks[i].name } : null
+  );
+}
+
+function pickDefaultTeams() {
+  const names = state.teamNames;
+  const hasMine = names.includes(MY_TEAM);
+  const hasOpp = names.includes(DEFAULT_OPPONENT);
+  state.away.teamName = hasMine ? MY_TEAM : names[0];
+  if (hasOpp && state.away.teamName !== DEFAULT_OPPONENT) {
+    state.home.teamName = DEFAULT_OPPONENT;
+  } else {
+    state.home.teamName = names.find(n => n !== state.away.teamName) || names[0];
+  }
+}
+
+// ---------- Event wiring ----------
+function onTeamChange(side, newTeam) {
+  state[side].teamName = newTeam;
+  autoPopulateSlots(side);
+  renderSlots(side);
+  renderGames();
+}
+
+function onSlotChange(side, idx, value) {
+  if (value === '') {
+    state[side].slots[idx] = null;
+  } else if (value === '__SUB__') {
+    state[side].slots[idx] = {
+      type: 'sub', name: '', ppd: SUB_DEFAULT_PPD, mpr: SUB_DEFAULT_MPR
+    };
+  } else {
+    state[side].slots[idx] = { type: 'player', name: value };
+  }
+  renderSlots(side);
+  renderGames();
+}
+
+function onSubFieldChange(side, idx, field, value) {
+  const slot = state[side].slots[idx];
+  if (!slot || slot.type !== 'sub') return;
+  if (field === 'name') slot.name = value;
+  else slot[field] = parseFloat(value) || 0;
+  const statsEl = document.querySelector(`.slot-select[data-side="${side}"][data-idx="${idx}"]`)
+    ?.closest('.slot-row')?.querySelector('.slot-stats');
+  if (statsEl) {
+    const s = getSlotStats(side, idx);
+    if (s) statsEl.innerHTML = `<span class="num">${s.ppd.toFixed(2)}</span> PPD <span class="sep">·</span> <span class="num">${s.mpr.toFixed(2)}</span> MPR`;
+  }
+  renderGames();
+}
+
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.id === 'away-team' || t.id === 'home-team') {
+    onTeamChange(t.id === 'away-team' ? 'away' : 'home', t.value);
+  } else if (t.classList.contains('slot-select')) {
+    onSlotChange(t.dataset.side, +t.dataset.idx, t.value);
+  } else if (t.dataset.sub) {
+    onSubFieldChange(t.dataset.side, +t.dataset.idx, t.dataset.sub, t.value);
+  }
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.dataset.sub) {
+    onSubFieldChange(t.dataset.side, +t.dataset.idx, t.dataset.sub, t.value);
+  }
+});
+
+// ---------- Teams loading ----------
+function applyTeamsAndRender(teams, keepSelections) {
+  const names = Object.keys(teams).sort((a,b) => {
+    const da = teams[a].division || 'Z';
+    const db = teams[b].division || 'Z';
+    if (da !== db) return da.localeCompare(db);
+    return a.localeCompare(b);
+  });
+  state.teams = teams;
+  state.teamNames = names;
+  // Preserve current team selections if that team still exists, otherwise pick defaults
+  if (keepSelections && names.includes(state.away.teamName) && names.includes(state.home.teamName)) {
+    // Keep lineups as-is for players still on the roster; drop missing ones
+    for (const side of ['away', 'home']) {
+      const roster = teams[state[side].teamName].players;
+      state[side].slots = state[side].slots.map(slot => {
+        if (!slot || slot.type === 'sub') return slot;
+        return roster.find(p => p.name === slot.name) ? slot : null;
+      });
+    }
+  } else {
+    pickDefaultTeams();
+    autoPopulateSlots('away');
+    autoPopulateSlots('home');
+  }
+  renderAll();
+}
+
+// Load the baked snapshot immediately on page load — no network needed.
+function loadSnapshotIntoState() {
+  const teams = loadBakedStats();
+  // Sort players by MPR desc for sensible auto-fill defaults
+  for (const t of Object.values(teams)) {
+    t.players.sort((a, b) => (b.mpr - a.mpr) || (b.ppd - a.ppd));
+  }
+  applyTeamsAndRender(teams, false);
+  const playerCount = Object.values(teams).reduce((s,t) => s + t.players.length, 0);
+  setStatus(`Snapshot: ${SNAPSHOT_DATE} ${SNAPSHOT_WEEK} · ${Object.keys(teams).length} teams · ${playerCount} players`, 'ok');
+}
+
+// Try to overwrite the snapshot with live stats from LeagueLeader.
+// Fails silently if running from a local file:// origin (CORS blocks everything).
+async function refresh() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  const prevStatus = document.getElementById('status').textContent;
+  setStatus('Fetching live stats…', 'loading');
+  try {
+    const html = await fetchStatsHTML(STATS_URL);
+    const teams = parseReport(html);
+    const names = Object.keys(teams);
+    if (names.length === 0) throw new Error('No teams parsed from report');
+    applyTeamsAndRender(teams, true);
+    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    const playerCount = Object.values(teams).reduce((s,t) => s + t.players.length, 0);
+    setStatus(`Live: ${names.length} teams · ${playerCount} players · ${time}`, 'ok');
+  } catch (err) {
+    console.error('[refresh] fetch failed:', err);
+    const isLocal = location.protocol === 'file:';
+    const hint = isLocal
+      ? 'Running as a local file — live fetch is blocked. Host on GitHub Pages for live stats.'
+      : 'All proxies failed. Using baked snapshot.';
+    setStatus(`${hint} Snapshot: ${SNAPSHOT_DATE} ${SNAPSHOT_WEEK}.`, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('refresh-btn').addEventListener('click', refresh);
+
+document.getElementById('collapse-lineup').addEventListener('click', (e) => {
+  const grid = document.getElementById('lineup-grid');
+  const btn = e.currentTarget;
+  const collapsed = grid.classList.toggle('collapsed');
+  btn.textContent = collapsed ? 'Show' : 'Hide';
+  btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+});
+
+// Load the baked snapshot immediately — tool is usable without any network call.
+loadSnapshotIntoState();
+</script>
+</body>
+</html>
