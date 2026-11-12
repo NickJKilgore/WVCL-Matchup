@@ -637,132 +637,138 @@ const SUB_DEFAULT_MPR = 2.0;
 // Baked-in snapshot of THUR27 rosters. Updates when Nick re-fetches and asks me
 // to refresh, OR when the live-fetch button succeeds (which only works when the
 // tool is served from https://, not from a local file://).
-const SNAPSHOT_DATE = 'Oct 12, 2026';
-const SNAPSHOT_WEEK = 'through Week 4';
+const SNAPSHOT_DATE = 'Nov 10, 2026';
+const SNAPSHOT_WEEK = 'through Week 3 regular season';
 const BAKED_TEAMS = [
-  // ----- Division A -----
-  { name: 'Dart Sharks', division: 'A', players: [
+  { name: 'Aiming For Trouble', players: [
+    { name: 'Faith Stevens',    ppd: 15.91, mpr: 1.36 },
+    { name: 'Madison McCourt',  ppd: 15.46, mpr: 1.69 },
+    { name: 'Haylee',           ppd: 15.17, mpr: 1.26 },
+    { name: 'Brandy Felcan',    ppd: 14.16, mpr: 1.26 },
+    { name: 'Chris Minor',      ppd: 14.02, mpr: 1.18 },
+  ]},
+  { name: 'B.D.E.', players: [
+    { name: 'KEITH MARCUM',     ppd: 25.33, mpr: 2.65 },
+    { name: 'ISAAC DULING',     ppd: 24.67, mpr: 2.56 },
+    { name: 'Anna Myers',       ppd: 17.89, mpr: 1.78 },
+    { name: 'Curt White',       ppd: 16.20, mpr: 1.62 },
+    { name: 'Amy Laishley',     ppd: 14.55, mpr: 1.48 },
+  ]},
+  { name: 'Bitch N TroubleMaker', players: [
+    { name: 'Shirley Bowman',   ppd: 15.98, mpr: 1.35 },
+    { name: 'Kimmie Bowman',    ppd: 13.36, mpr: 1.34 },
+    { name: 'HEATHER COLLEY',   ppd: 14.44, mpr: 1.29 },
+    { name: 'Sherry Stanley',   ppd: 13.96, mpr: 1.08 },
+  ]},
+  { name: 'Bout To Bust', players: [
+    { name: 'Luc Adkins',       ppd: 21.99, mpr: 2.26 },
+    { name: 'Aaron Burns',      ppd: 19.81, mpr: 2.14 },
+    { name: 'Beckett Ward',     ppd: 19.09, mpr: 2.05 },
+    { name: 'Mikey Wilkes',     ppd: 15.91, mpr: 1.67 },
+    { name: 'JOE ST.CLAIR',     ppd: 15.41, mpr: 1.55 },
+    { name: 'Alex Adkins',      ppd: 15.92, mpr: 1.54 },
+  ]},
+  { name: 'Dart Sharks', players: [
     { name: 'Cole Kiley',       ppd: 25.76, mpr: 3.04 },
     { name: 'Charles Vaughn',   ppd: 24.02, mpr: 3.00 },
-    { name: 'Brad Simpkins',    ppd: 20.56, mpr: 2.87 },
-    { name: 'Donald Bauman',    ppd: 24.27, mpr: 2.65 },
-    { name: 'Cory Kirby',       ppd: 17.62, mpr: 2.25 },
+    { name: 'Donald Bauman',    ppd: 23.74, mpr: 2.42 },
+    { name: 'Brad Simpkins',    ppd: 19.26, mpr: 2.32 },
+    { name: 'Mikey Wilkes',     ppd: 20.04, mpr: 2.20 },
+    { name: 'Cory Kirby',       ppd: 18.78, mpr: 2.17 },
     { name: 'Stephen Slater',   ppd: 17.62, mpr: 2.00 },
-    { name: 'Alexis Potter',    ppd: 15.90, mpr: 1.64 },
+    { name: 'Alexis Potter',    ppd: 15.24, mpr: 1.64 },
+    { name: 'Maegan Simpkins',  ppd: 16.42, mpr: 1.60 },
   ]},
-  { name: 'Darts Are Dumb', division: 'A', players: [
-    { name: 'Danny Vaughan',    ppd: 29.03, mpr: 3.01 },
-    { name: 'Derrick Waddell',  ppd: 20.30, mpr: 2.38 },
-    { name: 'Gene Martin',      ppd: 19.22, mpr: 1.91 },
-    { name: 'Amanda Vaughan',   ppd: 19.35, mpr: 1.64 },
-    { name: 'Tyler Fletcher',   ppd: 15.02, mpr: 1.39 },
+  { name: 'Dart Vaders', players: [
+    { name: 'Brad Fouch',       ppd: 17.16, mpr: 1.44 },
+    { name: 'Morgan Amend',     ppd: 14.54, mpr: 1.35 },
+    { name: 'Todd Thornton',    ppd: 14.67, mpr: 1.33 },
+    { name: 'Teresa Reynolds',  ppd: 14.56, mpr: 1.17 },
+    { name: 'Brian Bellville',  ppd: 14.76, mpr: 1.02 },
   ]},
-  { name: 'Kings Eat', division: 'A', players: [
-    { name: 'TROY HUFFMASTER',  ppd: 28.06, mpr: 3.85 },
-    { name: 'KYLE KELLEY',      ppd: 27.73, mpr: 2.85 },
-    { name: 'Vince Ciaccia',    ppd: 24.88, mpr: 2.77 },
-    { name: 'Jason Adams',      ppd: 27.63, mpr: 2.59 },
-    { name: 'Nick Kilgore',     ppd: 23.67, mpr: 2.40 },
-  ]},
-  { name: 'Oceans 4', division: 'A', players: [
-    { name: 'Corey Brammer',    ppd: 33.50, mpr: 3.72 },
-    { name: 'Dave Maynard',     ppd: 30.09, mpr: 3.21 },
-    { name: 'Cole Kiley',       ppd: 25.91, mpr: 3.20 },
-    { name: 'Jacob Lyons',      ppd: 24.66, mpr: 2.67 },
-    { name: 'Cobin Sanborn',    ppd: 21.32, mpr: 2.12 },
-  ]},
-  { name: 'On The Wire', division: 'A', players: [
-    { name: 'Charles Bridges',  ppd: 27.73, mpr: 3.04 },
-    { name: 'Dave Moore',       ppd: 24.56, mpr: 2.93 },
-    { name: 'Craig Mestel',     ppd: 30.52, mpr: 2.76 },
-    { name: 'Xavier Mestel',    ppd: 19.20, mpr: 2.19 },
-  ]},
-  { name: 'WildCard', division: 'A', players: [
-    { name: 'Andy Wray',        ppd: 25.13, mpr: 2.98 },
-    { name: 'Brian Withrow',    ppd: 27.16, mpr: 2.55 },
-    { name: 'Chase Dial',       ppd: 25.89, mpr: 2.35 },
-    { name: 'Warren Johnson',   ppd: 20.14, mpr: 1.79 },
-    { name: 'David Sunt',       ppd: 17.43, mpr: 1.54 },
-  ]},
-  // ----- Division B -----
-  { name: 'B.D.E.', division: 'B', players: [
-    { name: 'ISAAC DULING',     ppd: 24.11, mpr: 2.74 },
-    { name: 'KEITH MARCUM',     ppd: 25.69, mpr: 2.46 },
-    { name: 'Anna Myers',       ppd: 17.55, mpr: 1.82 },
-    { name: 'Curt White',       ppd: 17.36, mpr: 1.78 },
-    { name: 'Amy Laishley',     ppd: 14.24, mpr: 1.45 },
-  ]},
-  { name: 'Bout To Bust', division: 'B', players: [
-    { name: 'Aaron Burns',      ppd: 20.00, mpr: 2.49 },
-    { name: 'Luc Adkins',       ppd: 20.54, mpr: 2.30 },
-    { name: 'Beckett Ward',     ppd: 18.50, mpr: 2.06 },
-    { name: 'Mikey Wilkes',     ppd: 15.91, mpr: 1.67 },
-    { name: 'Alex Adkins',      ppd: 15.69, mpr: 1.55 },
-    { name: 'JOE ST.CLAIR',     ppd: 16.04, mpr: 1.45 },
-  ]},
-  { name: 'Just The Tip', division: 'B', players: [
-    { name: 'Craig King',       ppd: 19.19, mpr: 1.80 },
-    { name: 'Jordan Merkle',    ppd: 15.05, mpr: 1.76 },
-    { name: 'David Allen',      ppd: 18.36, mpr: 1.52 },
-    { name: 'Sarah Meadows',    ppd: 14.70, mpr: 0.89 },
-  ]},
-  { name: 'Play Time Is Over', division: 'B', players: [
-    { name: 'Deshawn Taylor',   ppd: 19.82, mpr: 2.38 },
-    { name: 'Randy Stacy',      ppd: 18.91, mpr: 2.35 },
-    { name: 'Chris Arty',       ppd: 21.58, mpr: 1.87 },
-    { name: 'John Evans',       ppd: 17.23, mpr: 1.86 },
-    { name: 'Brittany Hunt',    ppd: 16.12, mpr: 1.63 },
-    { name: 'Renee Marturano',  ppd: 13.21, mpr: 1.32 },
-  ]},
-  { name: 'Rat Bastards', division: 'B', players: [
-    { name: 'Shaun Stephens',   ppd: 23.02, mpr: 2.51 },
-    { name: 'Cory Hughes',      ppd: 17.78, mpr: 2.43 },
-    { name: 'Jonathan Alsop',   ppd: 18.80, mpr: 2.06 },
-    { name: 'JESSE TETER',      ppd: 18.10, mpr: 2.05 },
-    { name: 'Andy Meadows',     ppd: 19.53, mpr: 1.90 },
-  ]},
-  { name: 'Throwing Impaired', division: 'B', players: [
-    { name: 'RJ',               ppd: 22.31, mpr: 2.45 },
-    { name: 'Matt Johnson',     ppd: 23.40, mpr: 2.35 },
-    { name: 'Frank Canada',     ppd: 20.16, mpr: 2.29 },
-    { name: 'Mykel Booth',      ppd: 20.34, mpr: 1.85 },
-    { name: 'James Felcan',     ppd: 17.16, mpr: 1.70 },
-  ]},
-  // ----- Division C -----
-  { name: 'Aiming For Trouble', division: 'C', players: [
-    { name: 'Faith Stevens',    ppd: 15.14, mpr: 1.58 },
-    { name: 'Madison McCourt',  ppd: 16.01, mpr: 1.48 },
-    { name: 'Haylee',           ppd: 15.61, mpr: 1.42 },
-    { name: 'Brandy Felcan',    ppd: 13.24, mpr: 1.24 },
-    { name: 'Chris Minor',      ppd: 13.10, mpr: 1.20 },
-  ]},
-  { name: 'Bitch N TroubleMaker', division: 'C', players: [
-    { name: 'Kimmie Bowman',    ppd: 12.17, mpr: 1.54 },
-    { name: 'HEATHER COLLEY',   ppd: 14.72, mpr: 1.42 },
-    { name: 'Shirley Bowman',   ppd: 15.35, mpr: 1.33 },
-    { name: 'Sherry Stanley',   ppd: 14.18, mpr: 1.10 },
-  ]},
-  { name: 'Dart Vaders', division: 'C', players: [
-    { name: 'Brad Fouch',       ppd: 17.82, mpr: 1.40 },
-    { name: 'Todd Thornton',    ppd: 15.80, mpr: 1.24 },
-    { name: 'Morgan Amend',     ppd: 14.60, mpr: 1.24 },
-    { name: 'Teresa Reynolds',  ppd: 14.81, mpr: 1.19 },
-    { name: 'Brian Bellville',  ppd: 14.98, mpr: 1.10 },
-  ]},
-  { name: 'Dartaholics', division: 'C', players: [
-    { name: 'Spencer Vanderhorn', ppd: 25.29, mpr: 2.30 },
+  { name: 'Dartaholics', players: [
+    { name: 'Spencer Vanderhorn', ppd: 23.77, mpr: 2.39 },
+    { name: 'CURT Foltz',       ppd: 16.99, mpr: 1.60 },
     { name: 'DIRK HARRISON',    ppd: 18.11, mpr: 1.59 },
-    { name: 'CURT Foltz',       ppd: 18.60, mpr: 1.54 },
-    { name: 'SAMSON TEKA',      ppd: 14.80, mpr: 1.38 },
-    { name: 'Tim Buckland',     ppd: 13.66, mpr: 0.91 },
+    { name: 'SAMSON TEKA',      ppd: 15.13, mpr: 1.40 },
+    { name: 'Harrison Ritchie', ppd: 15.27, mpr: 1.16 },
+    { name: 'Tim Buckland',     ppd: 13.84, mpr: 1.02 },
+    { name: 'Beverly Edmons',   ppd: 12.96, mpr: 0.65 },
   ]},
-  { name: 'Skittle Squad', division: 'C', players: [
-    { name: 'Thomas Ramey',     ppd: 13.41, mpr: 1.52 },
-    { name: 'Ally Layman',      ppd: 15.96, mpr: 1.29 },
-    { name: 'Chase Dye',        ppd: 13.34, mpr: 1.24 },
-    { name: 'Leah Cunningham',  ppd: 13.46, mpr: 1.22 },
-    { name: 'Maggie Parrish',   ppd: 15.79, mpr: 1.16 },
-    { name: 'Erica Fitzpatrick', ppd: 14.19, mpr: 1.05 },
+  { name: 'Darts Are Dumb', players: [
+    { name: 'Danny Vaughan',    ppd: 25.65, mpr: 2.61 },
+    { name: 'Derrick Waddell',  ppd: 19.33, mpr: 2.07 },
+    { name: 'Gene Martin',      ppd: 18.74, mpr: 1.96 },
+    { name: 'STEVE STEPHENS',   ppd: 24.61, mpr: 1.87 },
+    { name: 'Amanda Vaughan',   ppd: 18.60, mpr: 1.81 },
+    { name: 'Tyler Fletcher',   ppd: 14.71, mpr: 1.46 },
+  ]},
+  { name: 'Just The Tip', players: [
+    { name: 'Craig King',       ppd: 18.48, mpr: 1.89 },
+    { name: 'David Allen',      ppd: 18.80, mpr: 1.79 },
+    { name: 'Jordan Merkle',    ppd: 15.25, mpr: 1.70 },
+    { name: 'Sarah Meadows',    ppd: 14.92, mpr: 0.93 },
+  ]},
+  { name: 'Kings Eat', players: [
+    { name: 'TROY HUFFMASTER',  ppd: 31.08, mpr: 3.68 },
+    { name: 'KYLE KELLEY',      ppd: 26.82, mpr: 2.80 },
+    { name: 'Vince Ciaccia',    ppd: 25.18, mpr: 2.71 },
+    { name: 'Jason Adams',      ppd: 26.82, mpr: 2.62 },
+    { name: 'Nick Kilgore',     ppd: 23.09, mpr: 2.36 },
+  ]},
+  { name: 'Oceans 4', players: [
+    { name: 'Corey Brammer',    ppd: 32.12, mpr: 3.67 },
+    { name: 'Dave Maynard',     ppd: 28.65, mpr: 3.23 },
+    { name: 'Cole Kiley',       ppd: 26.65, mpr: 3.03 },
+    { name: 'Jacob Lyons',      ppd: 24.68, mpr: 2.64 },
+    { name: 'Cobin Sanborn',    ppd: 20.77, mpr: 2.34 },
+  ]},
+  { name: 'On The Wire', players: [
+    { name: 'Craig Mestel',     ppd: 30.44, mpr: 3.01 },
+    { name: 'Charles Bridges',  ppd: 28.20, mpr: 2.93 },
+    { name: 'Dave Moore',       ppd: 25.43, mpr: 2.66 },
+    { name: 'Xavier Mestel',    ppd: 19.56, mpr: 2.18 },
+  ]},
+  { name: 'Play Time Is Over', players: [
+    { name: 'Deshawn Taylor',   ppd: 19.81, mpr: 2.30 },
+    { name: 'Randy Stacy',      ppd: 20.06, mpr: 2.19 },
+    { name: 'Chris Arty',       ppd: 19.14, mpr: 1.79 },
+    { name: 'John Evans',       ppd: 17.06, mpr: 1.77 },
+    { name: 'Brittany Hunt',    ppd: 16.12, mpr: 1.63 },
+    { name: 'Josh Mills',       ppd: 15.90, mpr: 1.48 },
+    { name: 'Renee Marturano',  ppd: 14.53, mpr: 1.47 },
+  ]},
+  { name: 'Rat Bastards', players: [
+    { name: 'Shaun Stephens',   ppd: 23.10, mpr: 2.60 },
+    { name: 'Cory Hughes',      ppd: 17.88, mpr: 2.38 },
+    { name: 'Tiffany Crisp',    ppd: 16.46, mpr: 2.36 },
+    { name: 'Jonathan Alsop',   ppd: 21.16, mpr: 2.17 },
+    { name: 'JESSE TETER',      ppd: 17.83, mpr: 1.91 },
+    { name: 'Andy Meadows',     ppd: 18.54, mpr: 1.85 },
+  ]},
+  { name: 'Skittle Squad', players: [
+    { name: 'Thomas Ramey',     ppd: 14.24, mpr: 1.55 },
+    { name: 'Chase Dye',        ppd: 14.38, mpr: 1.39 },
+    { name: 'Leah Cunningham',  ppd: 14.52, mpr: 1.29 },
+    { name: 'Erica Fitzpatrick', ppd: 14.13, mpr: 1.28 },
+    { name: 'Ally Layman',      ppd: 15.32, mpr: 1.27 },
+    { name: 'Jeremiah Hayes',   ppd: 14.52, mpr: 1.23 },
+    { name: 'Maggie Parrish',   ppd: 15.67, mpr: 1.13 },
+  ]},
+  { name: 'Throwing Impaired', players: [
+    { name: 'RJ',               ppd: 23.82, mpr: 2.48 },
+    { name: 'Matt Johnson',     ppd: 23.37, mpr: 2.28 },
+    { name: 'Frank Canada',     ppd: 20.77, mpr: 2.14 },
+    { name: 'Mykel Booth',      ppd: 22.78, mpr: 2.02 },
+    { name: 'James Felcan',     ppd: 16.77, mpr: 1.85 },
+  ]},
+  { name: 'WildCard', players: [
+    { name: 'Andy Wray',        ppd: 25.26, mpr: 2.89 },
+    { name: 'Alex Maynard',     ppd: 23.76, mpr: 2.87 },
+    { name: 'Chase Dial',       ppd: 24.80, mpr: 2.61 },
+    { name: 'Brian Withrow',    ppd: 26.51, mpr: 2.53 },
+    { name: 'Warren Johnson',   ppd: 19.74, mpr: 1.87 },
+    { name: 'David Sunt',       ppd: 16.42, mpr: 1.84 },
   ]},
 ];
 
@@ -771,7 +777,6 @@ function loadBakedStats() {
   for (const t of BAKED_TEAMS) {
     teams[t.name] = {
       name: t.name,
-      division: t.division,
       players: t.players.map(p => ({ name: p.name, ppd: p.ppd, mpr: p.mpr })),
     };
   }
@@ -1018,11 +1023,9 @@ function getSlotStats(side, idx) {
 
 // ---------- Rendering ----------
 function renderTeamSelects() {
-  const opts = state.teamNames.map(t => {
-    const div = state.teams[t]?.division;
-    const label = div ? `${t} (Div ${div})` : t;
-    return `<option value="${escapeHtml(t)}">${escapeHtml(label)}</option>`;
-  }).join('');
+  const opts = state.teamNames.map(t =>
+    `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`
+  ).join('');
   for (const side of ['away', 'home']) {
     const sel = document.getElementById(`${side}-team`);
     sel.innerHTML = opts;
@@ -1304,12 +1307,7 @@ document.addEventListener('input', (e) => {
 
 // ---------- Teams loading ----------
 function applyTeamsAndRender(teams, keepSelections) {
-  const names = Object.keys(teams).sort((a,b) => {
-    const da = teams[a].division || 'Z';
-    const db = teams[b].division || 'Z';
-    if (da !== db) return da.localeCompare(db);
-    return a.localeCompare(b);
-  });
+  const names = Object.keys(teams).sort((a,b) => a.localeCompare(b));
   state.teams = teams;
   state.teamNames = names;
   // Preserve current team selections if that team still exists, otherwise pick defaults
